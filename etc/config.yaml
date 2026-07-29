@@ -1,0 +1,12 @@
+AccountMgrRpc:
+  Etcd:
+    Hosts:
+      - etcd:2379
+    Key: accountmgr.rpc
+
+DB:
+  DataSource: root:password@tcp(mysql:3306)/account_db?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+
+CheckInterval: 30
+TimeStart: -60
+TimeEnd: 0
