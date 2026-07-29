@@ -66,13 +66,15 @@ func main() {
 }
 
 func runCheck(checker *C2CChecker, timeStart, timeEnd int64) {
-	now := time.Now()
-	startTime := now.Add(time.Duration(timeStart) * time.Second)
-	endTime := now.Add(time.Duration(timeEnd) * time.Second)
+	batchStart := time.Now()
+	startTime := batchStart.Add(time.Duration(timeStart) * time.Second)
+	endTime := batchStart.Add(time.Duration(timeEnd) * time.Second)
 
-	fmt.Printf("\n[%s] Starting check batch...\n", now.Format(time.RFC3339))
+	fmt.Printf("\n[%s] Starting check batch...\n", batchStart.Format("2006-01-02 15:04:05"))
 
 	result := checker.Check(context.Background(), startTime, endTime)
+	result.ExecuteStartTime = batchStart
+	result.ExecuteEndTime = time.Now()
 
 	fmt.Println(result.String())
 }

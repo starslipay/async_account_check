@@ -3,6 +3,9 @@
 APP_NAME="async_account_check"
 TAG="latest"
 
+docker rm -f $APP_NAME
+docker rmi -f ${APP_NAME}:${TAG}
+
 echo "Building Docker image..."
 docker build -t ${APP_NAME}:${TAG} .
 

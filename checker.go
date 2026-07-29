@@ -17,12 +17,14 @@ type FailureDetail struct {
 }
 
 type CheckResult struct {
-	Total     int
-	Success   int
-	Failed    int
-	Failures  []FailureDetail
-	StartTime time.Time
-	EndTime   time.Time
+	Total            int
+	Success          int
+	Failed           int
+	Failures         []FailureDetail
+	StartTime        time.Time
+	EndTime          time.Time
+	ExecuteStartTime time.Time
+	ExecuteEndTime   time.Time
 }
 
 type C2CChecker struct {
@@ -113,11 +115,14 @@ func (c *C2CChecker) Check(ctx context.Context, startTime, endTime time.Time) *C
 }
 
 func (r *CheckResult) String() string {
-	duration := r.EndTime.Sub(r.StartTime)
+	queryDuration := r.EndTime.Sub(r.StartTime)
+	execDuration := r.ExecuteEndTime.Sub(r.ExecuteStartTime)
 	result := fmt.Sprintf("=== Check Result ===\n")
-	result += fmt.Sprintf("Start Time: %s\n", r.StartTime.Format(time.RFC3339))
-	result += fmt.Sprintf("End Time: %s\n", r.EndTime.Format(time.RFC3339))
-	result += fmt.Sprintf("Duration: %v\n", duration)
+	result += fmt.Sprintf("Batch Start Time: %s\n", r.ExecuteStartTime.Format("2006-01-02 15:04:05"))
+	result += fmt.Sprintf("Batch End Time:   %s\n", r.ExecuteEndTime.Format("2006-01-02 15:04:05"))
+	result += fmt.Sprintf("Batch Duration:   %v\n", execDuration)
+	result += fmt.Sprintf("Query Time Range: %s ~ %s\n", r.StartTime.Format("2006-01-02 15:04:05"), r.EndTime.Format("2006-01-02 15:04:05"))
+	result += fmt.Sprintf("Query Duration:   %v\n", queryDuration)
 	result += fmt.Sprintf("Total: %d\n", r.Total)
 	result += fmt.Sprintf("Success: %d\n", r.Success)
 	result += fmt.Sprintf("Failed: %d\n", r.Failed)
