@@ -5,7 +5,7 @@ AccountMgrRpc:
     Key: accountmgr.rpc
 
 DB:
-  DataSource: root:password@tcp(mysql:3306)/account_db?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+  DataSource: root:root123456@tcp(mysql8:3306)/account_db?charset=utf8mb4&parseTime=True&loc=Local&timeout=5s&readTimeout=10s&writeTimeout=10s
 
 CheckInterval: 30
 TimeStart: -60

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -37,14 +36,14 @@ func NewC2cPendingTransferModel(conn sqlx.SqlConn) *C2cPendingTransferModel {
 }
 
 func (m *C2cPendingTransferModel) FindPendingByTimeRange(ctx context.Context, startTime, endTime time.Time) ([]*TC2cPendingTransfer, error) {
-	query := fmt.Sprintf(`
+	query := `
 		SELECT transaction_id, buyer_uid, seller_uid, buyer_user_id, seller_user_id, 
-		       amount, state, desc, create_time, update_time
-		FROM %s 
+		       amount, state, ` + "`desc`" + `, create_time, update_time
+		FROM ` + m.table + ` 
 		WHERE state = 1 
 		  AND create_time >= ? 
 		  AND create_time < ?
-	`, m.table)
+	`
 
 	var resp []*TC2cPendingTransfer
 	err := m.conn.QueryRowsCtx(ctx, &resp, query, startTime, endTime)
