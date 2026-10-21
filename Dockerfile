@@ -5,10 +5,14 @@ ENV GO111MODULE=on \
     GOOS=linux \
     GOPROXY=https://goproxy.io,https://goproxy.cn,https://mirrors.aliyun.com/goproxy/,direct
 
+# 指定要打入镜像的配置文件，部署脚本通过 --build-arg 传入
+ARG CONFIG_FILE=etc/config.yaml
+
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -o async_account_check .
+RUN if [ "${CONFIG_FILE}" != "etc/config.yaml" ]; then cp "${CONFIG_FILE}" etc/config.yaml; fi \
+    && go build -o async_account_check .
 
 FROM alpine:3.19
 WORKDIR /app

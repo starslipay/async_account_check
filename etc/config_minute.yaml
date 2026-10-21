@@ -1,0 +1,12 @@
+AccountMgrRpc:
+  Etcd:
+    Hosts:
+      - etcd:2379
+    Key: accountmgr.rpc
+
+DB:
+  DataSource: root:root123456@tcp(mysql-master:3306)/account_db?charset=utf8mb4&parseTime=True&loc=Local&timeout=5s&readTimeout=10s&writeTimeout=10s
+
+CheckInterval: 60
+TimeStart: -120
+TimeEnd: 0
