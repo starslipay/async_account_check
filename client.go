@@ -18,9 +18,18 @@ func NewAccountMgrClient(conf zrpc.RpcClientConf) *AccountMgrClient {
 	}
 }
 
-func (c *AccountMgrClient) C2CAsyncAccount(transactionId string) (*account_mgr_pb.C2CAsyncAccountRsp, error) {
+func (c *AccountMgrClient) C2CAsyncAccount(transactionId string) error {
 	client := account_mgr_pb.NewAccountMgrClient(c.cli.Conn())
-	return client.C2CAsyncAccount(context.Background(), &account_mgr_pb.C2CAsyncAccountReq{
+	_, err := client.C2CAsyncAccount(context.Background(), &account_mgr_pb.C2CAsyncAccountReq{
 		TransactionId: transactionId,
 	})
+	return err
+}
+
+func (c *AccountMgrClient) C2BAsyncAccount(transactionId string) error {
+	client := account_mgr_pb.NewAccountMgrClient(c.cli.Conn())
+	_, err := client.C2BAsyncAccount(context.Background(), &account_mgr_pb.C2BAsyncAccountReq{
+		TransactionId: transactionId,
+	})
+	return err
 }

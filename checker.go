@@ -17,6 +17,7 @@ type FailureDetail struct {
 }
 
 type CheckResult struct {
+	Name             string
 	Total            int
 	Success          int
 	Failed           int
@@ -27,32 +28,35 @@ type CheckResult struct {
 	ExecuteEndTime   time.Time
 }
 
-type C2CChecker struct {
-	accountMgrClient *AccountMgrClient
-	model            *C2cPendingTransferModel
-	logger           logx.Logger
-	sem              chan struct{}
+type Checker struct {
+	name    string
+	query   func(ctx context.Context, startTime, endTime time.Time) ([]string, error)
+	account func(transactionId string) error
+	logger  logx.Logger
+	sem     chan struct{}
 }
 
-func NewC2CChecker(accountMgrClient *AccountMgrClient, model *C2cPendingTransferModel) *C2CChecker {
-	return &C2CChecker{
-		accountMgrClient: accountMgrClient,
-		model:            model,
-		logger:           logx.WithContext(context.Background()),
-		sem:              make(chan struct{}, maxConcurrent),
+func NewChecker(name string, query func(ctx context.Context, startTime, endTime time.Time) ([]string, error), account func(transactionId string) error) *Checker {
+	return &Checker{
+		name:    name,
+		query:   query,
+		account: account,
+		logger:  logx.WithContext(context.Background()),
+		sem:     make(chan struct{}, maxConcurrent),
 	}
 }
 
-func (c *C2CChecker) Check(ctx context.Context, startTime, endTime time.Time) *CheckResult {
+func (c *Checker) Check(ctx context.Context, startTime, endTime time.Time) *CheckResult {
 	result := &CheckResult{
+		Name:      c.name,
 		StartTime: startTime,
 		EndTime:   endTime,
 		Failures:  make([]FailureDetail, 0),
 	}
 
-	transfers, err := c.model.FindPendingByTimeRange(ctx, startTime, endTime)
+	ids, err := c.query(ctx, startTime, endTime)
 	if err != nil {
-		c.logger.Errorf("find pending transfers failed: %v", err)
+		c.logger.Errorf("[%s] find pending transfers failed: %v", c.name, err)
 		result.Total = 0
 		result.Failed = 0
 		result.Failures = append(result.Failures, FailureDetail{
@@ -62,8 +66,8 @@ func (c *C2CChecker) Check(ctx context.Context, startTime, endTime time.Time) *C
 		return result
 	}
 
-	result.Total = len(transfers)
-	c.logger.Infof("found %d pending transfers to check", result.Total)
+	result.Total = len(ids)
+	c.logger.Infof("[%s] found %d pending transfers to check", c.name, result.Total)
 
 	if result.Total == 0 {
 		return result
@@ -72,21 +76,21 @@ func (c *C2CChecker) Check(ctx context.Context, startTime, endTime time.Time) *C
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
-	for _, transfer := range transfers {
+	for _, id := range ids {
 		wg.Add(1)
 		c.sem <- struct{}{}
-		go func(t *TC2cPendingTransfer) {
+		go func(transactionId string) {
 			defer wg.Done()
 			defer func() { <-c.sem }()
 
 			maxRetries := 3
 			var lastErr error
 			for i := 0; i < maxRetries; i++ {
-				_, err := c.accountMgrClient.C2CAsyncAccount(t.TransactionId)
+				err := c.account(transactionId)
 				if err != nil {
 					lastErr = err
-					c.logger.Errorf("call C2CAsyncAccount failed (retry %d/%d): transaction_id=%s, err=%v",
-						i+1, maxRetries, t.TransactionId, err)
+					c.logger.Errorf("[%s] call async account failed (retry %d/%d): transaction_id=%s, err=%v",
+						c.name, i+1, maxRetries, transactionId, err)
 					time.Sleep(time.Duration(i+1) * time.Second)
 					continue
 				}
@@ -94,20 +98,20 @@ func (c *C2CChecker) Check(ctx context.Context, startTime, endTime time.Time) *C
 				mu.Lock()
 				result.Success++
 				mu.Unlock()
-				c.logger.Infof("c2c async account success: transaction_id=%s", t.TransactionId)
+				c.logger.Infof("[%s] async account success: transaction_id=%s", c.name, transactionId)
 				return
 			}
 
 			mu.Lock()
 			result.Failed++
 			result.Failures = append(result.Failures, FailureDetail{
-				TransactionId: t.TransactionId,
+				TransactionId: transactionId,
 				Error:         fmt.Sprintf("failed after %d retries: %v", maxRetries, lastErr),
 			})
 			mu.Unlock()
-			c.logger.Errorf("c2c async account failed after %d retries: transaction_id=%s, err=%v",
-				maxRetries, t.TransactionId, lastErr)
-		}(transfer)
+			c.logger.Errorf("[%s] async account failed after %d retries: transaction_id=%s, err=%v",
+				c.name, maxRetries, transactionId, lastErr)
+		}(id)
 	}
 
 	wg.Wait()
@@ -117,7 +121,7 @@ func (c *C2CChecker) Check(ctx context.Context, startTime, endTime time.Time) *C
 func (r *CheckResult) String() string {
 	queryDuration := r.EndTime.Sub(r.StartTime)
 	execDuration := r.ExecuteEndTime.Sub(r.ExecuteStartTime)
-	result := fmt.Sprintf("=== Check Result ===\n")
+	result := fmt.Sprintf("=== Check Result [%s] ===\n", r.Name)
 	result += fmt.Sprintf("Batch Start Time: %s\n", r.ExecuteStartTime.Format("2006-01-02 15:04:05"))
 	result += fmt.Sprintf("Batch End Time:   %s\n", r.ExecuteEndTime.Format("2006-01-02 15:04:05"))
 	result += fmt.Sprintf("Batch Duration:   %v\n", execDuration)

@@ -136,8 +136,8 @@ github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0b
 github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/spf13/pflag v1.0.6 h1:jFzHGLGAlb3ruxLB8MhbI6A8+AQX/2eW4qeyNZXNp2o=
 github.com/spf13/pflag v1.0.6/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
-github.com/starslipay/account_mgr v1.0.8 h1:bKK92EwpBRbWJPDqjCh2n6S8tp2IYPcUXLHNPRE9jL0=
-github.com/starslipay/account_mgr v1.0.8/go.mod h1:Vaw5v10lehG3ShiCb5JWMAok8Lqg+FY7Ms/4lW7vpgQ=
+github.com/starslipay/account_mgr v1.0.10 h1:mnUyMCP6F5psADXS4k2Q8GmMyHAvUci5ZiAcBAxOZ8w=
+github.com/starslipay/account_mgr v1.0.10/go.mod h1:KaWJzNLnDVh+aymOt9XkRBxfEJJPgS0ofQC4/r+fdkg=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=

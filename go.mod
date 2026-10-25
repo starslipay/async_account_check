@@ -3,7 +3,7 @@ module github.com/starslipay/async_account_check
 go 1.25.4
 
 require (
-	github.com/starslipay/account_mgr v1.0.8
+	github.com/starslipay/account_mgr v1.0.10
 	github.com/zeromicro/go-zero v1.10.2
 )
 
